@@ -53,7 +53,7 @@ Supervisor Multi-Agent AI Platform is a full-stack agentic AI application demons
 
 | Chat UI | Streaming Chat |
 |---|---|
-| ![](assets/chatbot_ui_1.png) | ![](assets/chatbot_ui_2.png) |
+| ![](assets/chatbot1.png) | ![](assets/chatbot2.png) |
 
 | User Auth | Agent Workflow |
 |---|---|
