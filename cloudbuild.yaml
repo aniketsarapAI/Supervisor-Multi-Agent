@@ -1,0 +1,96 @@
+steps:
+  # Build backend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - Dockerfile.backend
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-api
+      - .
+
+  # Build frontend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - Dockerfile.frontend
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-ui
+      - .
+
+  # Push backend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-api
+
+  # Push frontend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-ui
+
+  # Phase 1: Deploy backend, capture URL, then deploy frontend with real BACKEND_URL
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+
+        # Deploy backend
+        gcloud run deploy sma-api \
+          --image=us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-api \
+          --region=us-central1 \
+          --platform=managed \
+          --allow-unauthenticated \
+          --cpu=2 \
+          --memory=2Gi \
+          --min-instances=0 \
+          --max-instances=3 \
+          --concurrency=80 \
+          --timeout=300 \
+          --port=8080 \
+          --set-secrets=OPENROUTER_API_KEY=sma-openrouter-key:latest \
+          --set-secrets=TAVILY_API_KEY=sma-tavily-key:latest \
+          --set-secrets=SUPABASE_URL=sma-supabase-url:latest \
+          --set-secrets=SUPABASE_KEY=sma-supabase-anon-key:latest \
+          --set-secrets=SUPABASE_SERVICE_KEY=sma-supabase-service-key:latest \
+          --set-secrets=SUPABASE_JWT_SECRET=sma-jwt-secret:latest \
+          --set-secrets=SUPABASE_DB_URL=sma-supabase-db-url:latest \
+          --set-secrets=LANGCHAIN_API_KEY=sma-langsmith-key:latest \
+          --set-env-vars=LANGCHAIN_TRACING_V2=true \
+          --set-env-vars=LANGCHAIN_ENDPOINT=https://api.smith.langchain.com \
+          --set-env-vars=LANGCHAIN_PROJECT=supervisor-multi-agent \
+          --set-env-vars=LLM_PROVIDER=openrouter \
+          --set-env-vars=LLM_MODEL=gpt-4o-mini \
+          --set-env-vars=LLM_TEMPERATURE=0.2 \
+          --set-env-vars=CORS_ORIGINS=*
+
+        # Capture backend URL
+        BACKEND_URL=$(gcloud run services describe sma-api \
+          --region=us-central1 --format='value(status.url)')
+        echo "Backend URL: $$BACKEND_URL"
+
+        # Deploy frontend with real BACKEND_URL
+        gcloud run deploy sma-ui \
+          --image=us-central1-docker.pkg.dev/$PROJECT_ID/supervisor-multi-agent/sma-ui \
+          --region=us-central1 \
+          --platform=managed \
+          --allow-unauthenticated \
+          --cpu=1 \
+          --memory=1Gi \
+          --min-instances=0 \
+          --max-instances=2 \
+          --timeout=300 \
+          --port=8501 \
+          --set-env-vars=BACKEND_URL=$$BACKEND_URL \
+          --set-secrets=SUPABASE_URL=sma-supabase-url:latest \
+          --set-secrets=SUPABASE_KEY=sma-supabase-anon-key:latest
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

@@ -1,0 +1,5 @@
+-r requirements.txt
+streamlit==1.46.1
+supabase==2.16.0
+requests==2.34.2
+streamlit-cookies-controller==0.0.4

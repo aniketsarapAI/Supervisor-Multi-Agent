@@ -1,0 +1,12 @@
+__pycache__/
+my_env/
+.env
+.git/
+.gitignore
+.venv/
+.vscode/
+.pytest_cache/
+assets/
+*.pyc
+Dockerfile*
+docker-compose.yml

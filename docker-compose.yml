@@ -1,0 +1,24 @@
+services:
+  sma-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8080"
+    env_file:
+      - .env
+    environment:
+      - CORS_ORIGINS=*
+
+  sma-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - BACKEND_URL=http://sma-api:8080
+    depends_on:
+      - sma-api

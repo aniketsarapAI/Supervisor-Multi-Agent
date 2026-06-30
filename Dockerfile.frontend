@@ -1,0 +1,18 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt requirements-frontend.txt ./
+RUN pip install --no-cache-dir -r requirements-frontend.txt
+
+COPY . .
+
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
+ENV PORT=8501
+
+CMD ["sh","-c","streamlit run frontend/streamlit_frontend.py \
+--server.port=${PORT} \
+--server.address=0.0.0.0 \
+--server.headless=true"]
