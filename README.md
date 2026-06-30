@@ -2,7 +2,7 @@
 
 Most chatbots call one model and hope it can handle every task. This project takes a different approach: a LangGraph supervisor routes each user request to the right specialist agent, streams the response in real time, and persists authenticated chat sessions through Supabase.
 
-![Workflow](assets/workflow.png)
+![Workflow](assets/hero.png)
 
 ## Table of Contents
 
@@ -57,7 +57,7 @@ Supervisor Multi-Agent AI Platform is a full-stack agentic AI application demons
 
 | User Auth | Agent Workflow |
 |---|---|
-| ![](assets/user_auth.png) | ![](assets/workflow.png) |
+| ![](assets/auth.png) | ![](assets/workflow.png) |
 
 | FastAPI | LangSmith |
 |---|---|
